@@ -1,0 +1,43 @@
+#!/usr/bin/env python
+
+from selenium import webdriver
+import re
+import time
+
+class zhihu_zhuanlan:
+    def __init__(self, search_keyword, url):
+        self.keyword = search_keyword
+        self.url = url
+    
+    def chrome_driver_start(self, path):
+        options = webdriver.ChromeOptions()
+        options.add_experimental_option("useAutomationExtension", False)
+        options.add_argument('--disable-blink-features=AutomationControlled')
+        options.add_experimental_option("excludeSwitches", ["enable-automation"])
+        self.driver = webdriver.Chrome(executable_path=path, chrome_options=options)
+    
+    def chrome_driver_quit(self):
+        self.driver.quit()
+    
+    def get_id(self):
+        self.driver.get(self.url % self.keyword)
+        time.sleep(2)
+        regex = re.compile(r'href="//www.zhihu.com/column/.*?"')
+        all_source = regex.findall(str(self.driver.page_source))
+        res = []
+        for i in range(len(all_source)):
+            res.append(all_source[i].split("/")[-1].split('"')[0])
+        final_res = list(set(res))
+        return final_res
+
+
+
+if __name__ == "__main__":
+    #  Example 天气
+    zhuanlan = zhihu_zhuanlan('天气', 'https://www.zhihu.com/search?type=column&q=%s')
+    # need to download a chrome driver path from 
+    # "https://chromedriver.chromium.org/downloads" 
+    # (same version as the chrome in the system)
+    zhuanlan.chrome_driver_start('###')
+    print(zhuanlan.get_id())
+    zhuanlan.chrome_driver_quit()
